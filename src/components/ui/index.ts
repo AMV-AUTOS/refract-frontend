@@ -8,3 +8,5 @@ export { Skeleton } from "./Skeleton";
 export { Container } from "./Container";
 export { Modal } from "./Modal";
 export type { ModalProps } from "./Modal";
+export { DataTable } from "./DataTable";
+export type { Column, DataTableProps } from "./DataTable";
