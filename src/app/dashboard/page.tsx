@@ -33,7 +33,7 @@ const STATUS_BADGE: Record<PolicyStatus, { tone: "safe" | "violet" | "neutral"; 
 export default function DashboardPage() {
   const wallet = useWallet();
   const address = wallet.status === "connected" ? wallet.address : null;
-  const { data: policies, loading, error, isFixture } = useHolderPolicies(address);
+  const { data: policies, loading, error, source } = useHolderPolicies(address);
   const claims = useClaims(address, policies);
 
   const policyList = policies ?? [];
@@ -63,10 +63,14 @@ export default function DashboardPage() {
             <p className="text-sm text-pm-text/45">
               Your active policies, claim status, and payout history in one place.
             </p>
-            {isFixture && (
+            {source === "fixture-unreachable" && (
               <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-pm-amber">
-                ⚠ Showing fixture data — either the Refract API isn&apos;t reachable, or it has no
-                recorded policies for this address yet.
+                ⚠ Showing fixture data — the Refract API isn&apos;t reachable right now.
+              </p>
+            )}
+            {source === "fixture-demo" && (
+              <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-pm-amber">
+                ⚠ Showing demo fixture data — demo mode is enabled for this address.
               </p>
             )}
           </div>
@@ -168,17 +172,25 @@ export default function DashboardPage() {
                                   <Badge tone={badge.tone}>{badge.label}</Badge>
                                 </div>
                                 <div className="text-xs text-pm-text/40">
-                                  Policy #{policy.id} · {formatUsd(fromStroops(policy.coverageAmount), { maximumFractionDigits: 0 })} coverage
+                                  Policy #{policy.id} · {formatUsd(fromStroops(policy.coverageAmount), { maximumFractionDigits: 0 })} coverage · expires {policy.expiresAt}
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4 sm:justify-end">
-                              <div className="text-right">
-                                <div className="text-[11px] uppercase tracking-wide text-pm-text/40">Premium</div>
-                                <div className="text-sm font-semibold text-pm-text">
-                                  {formatUsd(fromStroops(policy.premium), { maximumFractionDigits: 2 })}
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-4 text-xs text-pm-text/45">
+                              <span>Premium {formatUsd(fromStroops(policy.premium), { maximumFractionDigits: 0 })}</span>
+                              {policy.txHash && (
+                                <a
+                                  href={stellarExpertTxUrl(policy.txHash)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-pm-violet hover:underline"
+                                >
+                                  View tx
+                                </a>
+                              )}
+                              <Button href={`/dashboard/policies/${policy.id}`} variant="outline" className="inline-flex">
+                                View details
+                              </Button>
                             </div>
                           </div>
                         </Card>
